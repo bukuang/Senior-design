@@ -41,8 +41,10 @@ void loop()
 {
    for(int j = 0; j < sample_size; j++)
    {
-      for(int i = 1; i < sample_size; i++){           //read all new data at "free run" state to increase sampling rate and                   
-      voltage[i] = analogInput;                       //to make the sampling freq more stable.
+      for(int i = 1; i < sample_size; i++)
+      {    
+        analogInput = analogRead(analogPin);           //read all new data at "free run" state to increase sampling rate and                   
+        voltage[i] = analogInput;                      //to make the sampling freq more stable.
       }         
    }
   /*
