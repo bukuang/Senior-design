@@ -1,9 +1,16 @@
 // A digital frequency selective filter
 // A. Kruger, 2019
 //
+
+/*
+A program using auto-corr to determine the periodicity and freq of a signal
+modified from A. Kruger's digital frequency selective filter templete
+
+Group Y, 2019
+*/
+
 // The following defines are used for setting and clearing register bits
 // on the Arduino processor. Low-level stuff: leave alone.
-
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
 #endif
@@ -17,7 +24,8 @@
 int analogPin = A0;     // Analog input pin. Make sure to keep the input voltage between 0 and 5V.
 float analogInput;
 float voltage[sample_size] = {0}, voltageCorr[sample_size] = {0};
-
+//R[m] = $\sum_{i=m}^{N} y[i]\times y[i-m]
+//m: delay, N:size of data
 float AutoCorrelation(float* data, int m, int N)
 {
   float r = 0.0f;
@@ -36,6 +44,7 @@ void setup()
    cbi(ADCSRA,ADPS1);
    cbi(ADCSRA,ADPS0);
    Serial.begin(9600);
+   pinMode(13, OUTPUT);
 
 }
 
@@ -50,7 +59,7 @@ void loop()
       }         
    }
   /*
-  voltage[i] = (actual volate / 5V) * 1023 + offset. The arduino does read negitive voltage so we should add 
+  voltage[i] = (actual volate / 5V) * 1023 + offset. The arduino doesnt read negitive voltage so we should add 
   analog/digital offset if we need to.
   */
  
@@ -61,7 +70,6 @@ void loop()
   */
   
   
-  //int sample_size = 80;
   
   //autocorr
   for (int i = 0; i < sample_size; i++)
@@ -94,7 +102,7 @@ void loop()
   
   //TODO:Determine the discrete period of signal
   //At around 8000-9000hz sampling rate the period of 550hz signal is 13 samples. We need to test our board to determine the period.
-  int period = 13; 
+  int period = 90; 
   
   //find max index
   float max_corr_value = 0;
@@ -107,25 +115,28 @@ void loop()
       max_corr_value = volatageCorrSmooth[j];
     }
   }
-  
-   for (int i = 0; i < sample_size; i++) {
-    if(b == 0)
-      Serial.println(voltage[i]);
-   }
-    if(b == 0)
-   Serial.println("----------------");
-   for (int i = 0; i < sample_size; i++) {
-    if(b == 0)
-    {
-    Serial.println(voltageCorr[i]);
-    }
-   }
-     Serial.println("............................");
-   for(int i=0;i< sample_size;i++)
+  if(max_corr_indx <= period - 10 && max_corr_indx >= period + 10) //signal detected
+  {
+    digitalWrite(13, HIGH);                                        //turn on LED
+    Serial.println(1);
+  }
+  else
+  {
+    digitalWrite(13, LOW);                                         //turn off LED
+  }
+   /*for (int i = 0; i < sample_size; i++)
    {
-    if(b == 0)
-    Serial.println(volatageCorrSmooth[i]);
-   }
+     Serial.println(voltage[i]);
+     Serial.println("----------------");
+     for (int i = 0; i < sample_size; i++) 
+     {
+       Serial.println(voltageCorr[i]);
+     }
+     Serial.println("............................");
+     for(int i=0;i< sample_size;i++)
+     {
+       Serial.println(volatageCorrSmooth[i]);
+     }*/
    
     
    b++;
